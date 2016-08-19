@@ -45,9 +45,12 @@ var mainState = {
 
 
     // Create an empty group
-    this.pipes = game.add.group();
+    // this.pipes = game.add.group();
+    this.blocks = game.add.group();
 
-    this.timer = game.time.events.loop(800, this.addRowOfPipes, this);
+    // this.timer = game.time.events.loop(900, this.addRowOfPipes, this);
+    // this.timer = game.time.events.loop(200, this.addOnePipe, this)
+    this.timer = game.time.events.loop(200, this.addKillBlock, this)
 
     // To listen to buttons from a specific pad listen directly on that pad game.input.gamepad.padX, where x = pad 1-4
     pad1 = game.input.gamepad.pad1;
@@ -57,6 +60,26 @@ var mainState = {
       font: "30px Arial",
       fill: "#ffffff"
     })
+  },
+
+
+  addKillBlock: function () {
+
+    var doomSpot = (Math.random() * 9) - 1;
+
+    var block = game.add.sprite(800, doomSpot * 60 + 10, 'pipe');
+
+    this.blocks.add(block);
+    game.physics.arcade.enable(block);
+
+    block.body.velocity.x = -200;
+
+    block.checkWorldBounds = true;
+    block.outOfBoundsKill = true;
+
+
+    this.score += 1;
+    this.labelScore.text = this.score;
   },
 
   addOnePipe: function (x, y) {
@@ -152,8 +175,8 @@ var mainState = {
        }
    }
 
-   game.physics.arcade.overlap(
-     this.bird, this.pipes, this.restartGame, null, this)
+  game.physics.arcade.overlap(this.bird, this.pipes, this.restartGame, null, this)
+  game.physics.arcade.overlap(this.bird, this.blocks, this.restartGame, null, this)
   },
 
   // Make the bird jump
@@ -170,7 +193,8 @@ var mainState = {
 };
 
 // Initialize Phaser, and create a 400px by 490px game
-var game = new Phaser.Game(400, 490);
+var game = new Phaser.Game(800, 490);
+// game.scale.setGameSize(400, 490)
 
 // Add the 'mainState' and call it 'main'
 game.state.add('main', mainState);
