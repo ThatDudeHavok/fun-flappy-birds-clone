@@ -6,7 +6,8 @@ var mainState = {
 
     // Load the bird sprite
     game.load.image('bird', 'assets/bird.png');
-    game.load.image('pipe', 'assets/pipe.png')
+    game.load.image('pipe', 'assets/pipe.png');
+
   },
 
   create: function () {
@@ -26,6 +27,13 @@ var mainState = {
     // Needed for: movements, gravity, collisions, etc.
     game.physics.arcade.enable(this.bird);
 
+    // Hopefully this code will get the controller to work
+    // this.indicator = game.add.sprite(10, 10, 'controller-indicator')
+    // this.indicator.scale.x = indicator.scale.y = 2;
+    // this.indicator.animations.frame = 1;
+
+    game.input.gamepad.start();
+
     // Add gravity to the bird to make it fall
     // this.bird.body.gravity.y = 1000;
 
@@ -39,7 +47,16 @@ var mainState = {
     // Create an empty group
     this.pipes = game.add.group();
 
-    this.timer = game.time.events.loop(1500, this.addRowOfPipes, this);
+    this.timer = game.time.events.loop(800, this.addRowOfPipes, this);
+
+    // To listen to buttons from a specific pad listen directly on that pad game.input.gamepad.padX, where x = pad 1-4
+    pad1 = game.input.gamepad.pad1;
+
+    this.score = 0;
+    this.labelScore = game.add.text(20, 20, "0", {
+      font: "30px Arial",
+      fill: "#ffffff"
+    })
   },
 
   addOnePipe: function (x, y) {
@@ -72,6 +89,8 @@ var mainState = {
         this.addOnePipe(400, i * 60 + 10);
       }
     }
+    this.score += 1;
+    this.labelScore.text = this.score;
   },
 
   update: function () {
@@ -83,6 +102,58 @@ var mainState = {
     if (this.bird.y < 0 || this.bird.y > 490) {
       this.restartGame();
     }
+    // if (game.input.gamepad.supported && game.input.gamepad.active && pad1.connected) {
+    //     indicator.animations.frame = 0;
+    // } else {
+    //     indicator.animations.frame = 1;
+    // }
+    if (pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT) || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.1)
+   {
+       this.bird.x--;
+   }
+   else if (pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT) || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.1)
+   {
+       this.bird.x++;
+   }
+
+   if (pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_UP) || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1)
+   {
+       this.bird.y--;
+   }
+   else if (pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN) || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1)
+   {
+       this.bird.y++;
+   }
+
+   if (pad1.justPressed(Phaser.Gamepad.XBOX360_A))
+   {
+       this.bird.angle += 5;
+   }
+
+   if (pad1.justReleased(Phaser.Gamepad.XBOX360_B))
+   {
+       this.bird.scale.x += 0.01;
+       this.bird.scale.y = this.bird.scale.x;
+   }
+
+   if (pad1.connected)
+   {
+       var rightStickX = pad1.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_X);
+       var rightStickY = pad1.axis(Phaser.Gamepad.XBOX360_STICK_RIGHT_Y);
+
+       if (rightStickX)
+       {
+           this.bird.x += rightStickX * 10;
+       }
+
+       if (rightStickY)
+       {
+           this.bird.y += rightStickY * 10;
+       }
+   }
+
+   game.physics.arcade.overlap(
+     this.bird, this.pipes, this.restartGame, null, this)
   },
 
   // Make the bird jump
